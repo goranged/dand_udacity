@@ -1,0 +1,16 @@
+select distinct key from nodes_tags order by key asc;
+key
+alt_name
+alt_name_1
+highway
+highway_1
+name
+name_1
+phone
+phone_1
+postal_code
+postcode
+source
+source_1
+speciality
+speciality_1

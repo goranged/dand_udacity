@@ -1,0 +1,6 @@
+* https://stackoverflow.com/questions/393843/python-and-regular-expression-with-unicode
+* https://stackoverflow.com/questions/17223624/bulk-replace-with-regular-expressions-in-python
+* https://stackoverflow.com/questions/25698710/replace-all-occurrences-of-a-string-in-a-pandas-dataframe-python
+* https://stackoverflow.com/questions/36028759/how-to-open-and-convert-sqlite-database-to-pandas-dataframe
+* https://stackoverflow.com/questions/559363/matching-a-space-in-regex
+* https://stackoverflow.com/questions/29662004/programming-error-you-must-not-use-8-bit-bytestrings

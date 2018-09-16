@@ -1,0 +1,17 @@
+
+select key, value from nodes_tags where key = 'phone' order by length(value) desc;
+phone,tel:2231-0024
+phone,(506)2239-5717
+phone,506-7010-1771
+phone,(506)22535354
+phone,506-2430-2929
+phone,5062511556402
+phone,506-2228-9541
+phone,905-246-3722
+phone,50688804660
+phone,2290-40-85
+phone,2254-6281
+phone,25240006 <- excluded
+phone,2801712 <- excluded
+phone,17-22 <- excluded
+phone,0 <- excluded

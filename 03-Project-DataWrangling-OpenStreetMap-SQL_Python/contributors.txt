@@ -1,0 +1,12 @@
+sqlite> select value,count(*) from (select* from nodes_tags union select * from ways_tags) where key like '%source%' group by value order by count(*) desc limit 10;
+
+KG Ground Survey 2015|10065
+KG Ground Survey 2014|1658
+KG Ground Survey 2016|124
+Bing|85
+KG Ground Survey 2015 Costa Rica|66
+Sitio Oficial|34
+Bing Maps|26
+Bing satellite imagery|21
+maplibrary.org|18
+wind|18

@@ -1,0 +1,4 @@
+select distinct a.key, b.value from (select  key,count(*) as total_key from nodes_tags group by key order by count(*) desc limit 40) a join nodes_tags b on a.key = b.key order by a.total_key desc;
+    
+    
+select distinct a.key, b.value from (select  key,count(*) as total_key from ways_tags group by key order by count(*) desc limit 40) a join ways_tags b on a.key = b.key order by a.total_key desc, length(value) desc;

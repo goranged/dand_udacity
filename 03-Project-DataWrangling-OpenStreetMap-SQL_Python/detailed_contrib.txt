@@ -1,0 +1,13 @@
+sqlite> select strftime('%Y',timestamp) as year, count(*) as quantity from (SELECT timestamp from nodes union SELECT timestamp from ways) group by year order by year desc;
+
+2017|3177
+2016|13094
+2015|9950
+2014|4236
+2013|3778
+2012|4672
+2011|2347
+2010|3329
+2009|2844
+2008|1745
+2007|35

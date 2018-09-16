@@ -1,0 +1,4 @@
+select * from nodes where id <= 0 or user = "";
+0 records
+select * from nodes where lon = 0 or lat = 0;
+0 records

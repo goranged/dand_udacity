@@ -1,0 +1,595 @@
+---
+title: "DAND - Exploratory Data Analysis Project"
+author: "Guillermo Naranjo"
+date: "October 2, 2017"
+---
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+# Loading used packages.
+library(ggplot2)
+library(ggthemes)
+library(gridExtra)
+library(scales)
+library(GGally)
+library(memisc)
+library(dplyr)
+```
+
+```{r echo=FALSE, Load_the_Data}
+
+# Loading the data and reorganizing dataframe
+extract_df <- function(df){
+
+  df <- read.csv('wineQualityReds.csv')
+  
+  #I use quality level factor to show graphs by color level
+  df['quality_level'] <- as.factor(df$quality)
+
+  #Since quality level 3 and 8 have few observations I've grouped quality levels
+  #to increase significance and apply further analysis:
+  #Quality1 = 3 + 4, 
+  #Quality2 = 5
+  #Quality3 = 6
+  #Quality4 = 7 + 8
+  quality_groups <- c(1,1,2,3,4,4)
+  df['quality_group'] <- as.factor(quality_groups[df$quality_level])
+  
+  df$X <- NULL
+  return(df)
+}
+
+pf <- extract_df()
+
+```
+
+```{r Utilitary functions, echo=FALSE}
+
+#Outliers detection function used to explore outlier effect in analysis
+olimits <- function(variable) { 
+  fivenum(variable)
+  minoutlier <- quantile(variable,0.25)-1.5*IQR(variable)
+  maxoutlier <- quantile(variable,0.75)+1.5*IQR(variable) 
+  return(c(minoutlier,maxoutlier))
+} 
+
+#Graph used to show Univariate histogram plots 
+show_histo <- function(df, var, label, bwidth){
+    g <- ggplot(aes(x = var), data = df) +
+    scale_y_sqrt()+
+    geom_histogram(binwidth = bwidth, color = 'darkgrey', fill = 'grey') + 
+    theme(legend.position="bottom") + 
+    xlab(label) +
+    ylab('Number of observations')
+  return(g)
+}
+
+#Graph used to show Univariate histogram plots 
+show_histo_no_outliers <- function(df, var, label, bwidth){
+    o <- ggplot(aes(x = var), data = df) +
+    scale_y_sqrt()+
+    coord_cartesian(xlim = olimits(var)) +
+    geom_histogram(binwidth = bwidth, color = 'darkgrey', fill = 'grey') + 
+    theme(legend.position="bottom") + 
+    xlab(label) +
+    ylab('Number of observations')
+  return(o)
+}
+
+#Graph used to show Univariate box plots 
+show_box <- function(df, var, label){
+  b <- ggplot(df, aes(y = var, x = 1)) +
+  geom_boxplot(color = 'blue') +
+  geom_jitter(aes(x = 1, y = var), alpha = 0.2) +
+  labs(y = label, x = '',title = "") +
+  coord_flip()
+  
+  return(b)
+}
+
+#Graph used to show bivariate violin plots 
+show_violin <- function(df, var, label){
+  s <- ggplot(df, aes(x=quality_level, y=var)) + 
+  geom_violin(trim=FALSE)+
+  geom_boxplot(width=0.1, fill="white")+
+  labs(x="quality", y = label)
+  s<- s + theme(legend.position="none")
+  return(s)
+}
+```
+
+# DataSet:
+
+I'm using red wine dataset since I'm particularly interested in classification
+techniques and I also like wine ... good deal. As mentioned in the [README file](https://s3.amazonaws.com/udacity-hosted-downloads/ud651/wineQualityInfo.txt),
+
+# Univariate Plots Section
+
+```{r VariablesSummary, echo=FALSE, cache=FALSE}
+str(pf)
+```
+
+> Redwine quality varible contains six leves, two of them (3 low quality wines
+and 8 high quality wines) have few cases. I will not apply test significance of
+those levels but to have a better understanding for colors I group: 
+
+* level 3 and 4 as Cat1
+* levels 7 and 8 as Cat4.
+
+
+
+#### Acidity / basis variables
+
+The following grid shows the distribution of acidity/basis variables.
+
+```{r Distributions1, echo=FALSE}
+h1 <- show_histo(pf,pf$fixed.acidity,'Fixed Acidity',0.5)
+h2 <- show_histo(pf,pf$volatile.acidity,'Volatile Acidity',0.05)
+h3 <- show_histo(pf,pf$citric.acid,'Citric Acid',0.05)
+h4 <- show_histo(pf,pf$pH,'pH',0.05)
+grid.arrange(h1,h2,h3,h4, ncol=2)
+```
+
+fixed.acidity
+```{r echo=FALSE, cache=FALSE}
+summary(pf$fixed.acidity)
+```
+
+volatile.acidity
+```{r echo=FALSE, cache=FALSE}
+summary(pf$volatile.acidity)
+```
+
+citric.acid
+```{r echo=FALSE, cache=FALSE}
+summary(pf$citric.acid)
+```
+
+pH
+```{r echo=FALSE, cache=FALSE}
+summary(pf$pH)
+```
+
+
+* Fixed acidity is unimodal, right skewed with peak at 7.9.
+* Volatile acidity is multimodal, it would be interesting to see in bivariate
+analysis if those modals are related to quality or other variables.
+* Citric acid like volatile acidity is multimodal and looks complex.
+* pH seems to be a normal distribution with peak at 3.310.
+
+> **Courious**: are modals related to quality?
+
+#### Alcohol and Sulphates
+
+The following grid shows the distribution of alcohol and sulphated variables.
+
+```{r Distributions2, echo=FALSE}
+h5 <- show_histo(pf,pf$free.sulfur.dioxide,'Free Sulfur Dioxide',3)
+h6 <- show_histo(pf,pf$total.sulfur.dioxide,'Total Sulfur Dioxide',12)
+h7 <- show_histo(pf,pf$sulphates,'Sulphates',0.07)
+h8 <- show_histo(pf,pf$alcohol,'Alcohol',0.28)
+grid.arrange(h5,h6,h7,h8, ncol=2)
+```
+
+free.sulfur.dioxide
+```{r echo=FALSE, cache=FALSE}
+summary(pf$free.sulfur.dioxide)
+```
+
+total.sulfur.dioxide
+```{r echo=FALSE, cache=FALSE}
+summary(pf$total.sulfur.dioxide)
+```
+
+sulphates
+```{r echo=FALSE, cache=FALSE}
+summary(pf$sulphates)
+```
+
+alcohol
+```{r echo=FALSE, cache=FALSE}
+summary(pf$alcohol)
+```
+
+
+* Free sulfur dioxide is unimodal with peak at 14.00, completely right skewed
+wth some outlier passing 60g/dm3.
+* Total sulfur dioxide distribution is similar to Free sulfur dioxide with peak
+at 38.00 and outliear passing 200ppm TSD.
+* Suplates, unimodal, not completely normal with peak at 0.6200 g/dm3 (a log
+transformation on X will help) with some possible outliers passing 1.5 g/dm3.
+* Alcohol, biimodal with higuest peak at 10.20% and second one at 11%.
+
+#### Other less interesting variables
+
+
+```{r Distributions3, echo=FALSE}
+h9 <- show_histo(pf,pf$residual.sugar,'Residual Sugar',1)
+h10 <- show_histo(pf,pf$density,'Density',0.0008)
+h11 <- show_histo(pf,pf$chlorides,'Chlorides',0.03)
+grid.arrange(h9,h10,h11,h8,ncol=2)
+```
+
+residual.sugar
+```{r echo=FALSE, cache=FALSE}
+summary(pf$residual.sugar)
+```
+
+density
+```{r echo=FALSE, cache=FALSE}
+summary(pf$density)
+```
+
+chlorides
+```{r echo=FALSE, cache=FALSE}
+summary(pf$chlorides)
+```
+
+* If we remove some outlier from Chlorides and Residual Sugar distributions
+they look unimodal, with some "special cases" at higher sugar/chlorides level.
+* Density looks completely normal distribuided with peak at 0.9968.
+
+
+#### Boxplots
+
+Now, lets have a closer looks at Residual sugar, Chlorides and Sulphates to see
+how outliers affect each variable.
+
+```{r Boxplots2, echo=FALSE}
+b1 <- show_box(pf,pf$residual.sugar,'Residual sugar')
+b2 <- show_box(pf,pf$chlorides,'Chlorides')
+b3 <- show_box(pf,pf$sulphates, 'Sulphates')
+grid.arrange(b1,b2,b3,ncol=2)
+```
+
+It seems both residual sugar and chlorides have some outliers that could affect
+the distribution. So, there are few cases where wine is either sweet or salty.
+
+> outlier detections is applied.
+
+```{r Boxplots3, echo=FALSE}
+o1 <- show_histo_no_outliers(pf,pf$residual.sugar,'Residual sugar',0.2)
+o2 <- show_histo_no_outliers(pf,pf$chlorides,'Chlorides',0.005)
+o3 <- show_histo_no_outliers(pf,pf$sulphates, 'Sulphates',0.05)
+grid.arrange(o1,o2,o3,ncol=2)
+```
+
+# Univariate Analysis
+
+**What is the structure of your dataset?**
+
+Our dataset contains 1599 observations and 11 quantitative variables.
+This is a tidy data set that describes each observation (red variants of the
+Portuguese "Vinho Verde" wine) with 11 qualitative  physicochemical input
+variables and 1 output variable: quality. I'll try to analyze which variables
+define red wine quality for this particular sample. There are some interesting
+facts about variables that could relate to quality: 
+
+* Volatile acidity: at too high of levels can lead to unpleasant, vinegar taste.
+* Citric acid: can add 'freshness' and flavor to wines.
+* Free sulfur dioxide: prevents microbial growth and the oxidation of wine (SO2).
+* Total sulfur dioxide: over 50 ppm becomes evident in the nose and taste.
+* Density: dependent variable of alcohol and sugar.
+* pH: how acid or basic is the wine, most wines are between 3-4 on the pH scale.
+* Sulphates: additive which can contribute to S02 levels.
+* Alcohol: the percent alcohol content of the wine.
+
+**What is/are the main feature(s) of interest in your dataset?**
+
+Volatile acidity, citric acid, sulphates and alcohol are interesting since
+they are multimodal. Is there a relation between each mode and quality?
+
+**What other features in the dataset do you think will help support your**
+**investigation into your feature(s) of interest? **
+
+Since Fixed acidity and pH are related to citric and volatile acidity those are
+other variables I would like to analyze. As for alcohol, it looks like there is
+a relation to density and sugar residual that we need to verify.
+
+**Did you create any new variables from existing variables in the dataset?**
+
+Not yet but Density, pH and Fixed acidity can eventually be removed if we
+managed to conclude they can be highly correlated to other varibles linearly
+related to quality.
+
+**Of the features you investigated, were there any unusual distributions?**
+
+Sugar residuals, chlorides, sulphates and total sulfur dioxide look normal once
+outliers are applied. Residual Sugar and Sulphates are even alike.
+
+Some are normal distributions like Ph and Density but in most cases the
+distributions are right skewed. I applied a **scale_y_sqrt** to the plots
+to amplify the modals and see other patterns.
+
+# Bivariate Plots Section
+
+Since our Redwine data set contains only continuous variables we are able to
+apply Pearson correlation.
+
+```{r, echo=FALSE}
+corr_pf <- pf
+corr_pf$quality_level <- NULL
+corr_pf$quality_group <- NULL
+colnames(corr_pf) <- c("F.Acid", "V.Acid", "C.Acid","RSugar","Chlor","FreeSD", "TotalSD","Dens.","pH", "Sulph","Alcoh","Qual.")
+res <- cor(corr_pf)
+round(res, 2)
+```
+
+Besides Free Sulfate Dioxide and Free Sulfate Dioxide (that are closely related),
+lets look at other interestingly related variables:
+
+```{r, echo=FALSE}
+corr_pf$Qual <- pf$quality_group
+ggpairs(corr_pf, bins = 30, columns = c("F.Acid","V.Acid", "C.Acid","Dens.","pH"),
+        lower = list(continuous = wrap("points", shape = I('.'))),
+        upper = list(combo = wrap("box", outlier.shape = I('.'))))
+```
+
+```{r, echo=FALSE}
+ggpairs(corr_pf, bins = 30, columns = c("RSugar","Dens.", "Chlor","Sulph","Alcoh"),
+        lower = list(continuous = wrap("points", shape = I('.'))),
+        upper = list(combo = wrap("box", outlier.shape = I('.'))))
+```
+
+And finally lets plot the the variables more correlated to quality with 
+conditional summaries:
+
+```{r, echo=FALSE}
+quality_groups <- group_by(pf, quality)
+val_by_quality <- summarise(quality_groups,
+          fa_Median = median(fixed.acidity),
+          va_Median = median(volatile.acidity),
+          ca_Median = median(citric.acid),
+          rs_Median = median(residual.sugar),
+          ch_Median = median(chlorides),
+          fs_dMedian = median(free.sulfur.dioxide),
+          ts_dMedian = median(total.sulfur.dioxide),
+          de_Median = median(density),
+          pH_Median = median(pH),
+          su_Median = median(sulphates),
+          al_Median = median(alcohol),
+          n = n())
+t(round(val_by_quality, 3))
+```
+
+```{r Violinplots, echo=FALSE}
+s1 <- show_violin(pf,pf$volatile.acidity,'Volatile acidity')
+s2 <- show_violin(pf,pf$chlorides,'Chlorides')
+s3 <- show_violin(pf,pf$sulphates, 'Sulphates')
+s4 <- show_violin(pf,pf$alcohol, 'Alcohol')
+grid.arrange(s1,s2,s3,s4,ncol=2)
+
+```
+
+**Observations:**
+
+* Fixed Acidity mean increases as quality increases with a peak at 8.8 g/dm^3.
+Almost logistic but with more variance at quality level 8.
+* **Volatile acidity decreases as quality increases and has less variance** 
+**as quality increases as well**.
+* Citric acid follow a positive linear behaviour as quality increases.
+* Residual Sugar doesn't have a linear behaviour with quality.
+* **Chlorides (once ouliers are excluded) seems to follow a linear model** against 
+quality by looking at conditional summary.
+* The same goes for pH and density. There is a relation with quality but not
+completely linear.
+* Alcohol has a strong correlation to quality **except for level 5** but as the
+violin plot shows it shows outliers and particular behaviour compared to other
+levels.
+* **Sulphates seems to have a linear pattern to quality**.
+
+# Bivariate Analysis
+
+### Talk about some of the relationships you observed in this part of the \
+investigation. How did the feature(s) of interest vary with other features in \
+the dataset?
+
+We have some strong relations:
+* Between variables related to acidity: fixed acidity, volatile acidity, citric
+acid and pH, been Volatile acidity the one with higuest correlation to quality.
+**I conclude red wines with less volatile acidity levels tend to have high quality**.
+
+### Did you observe any interesting relationships between the other features \
+(not the main feature(s) of interest)?
+
+Density also have a relation to acidity variables specially to Fixed acidity
+(0.668).
+
+It's interest that Density is also related to alcohol (-0.50). So, it seems
+density can be a link been acidity variables and alcohol/sulphates variables to
+define quality.
+
+### What was the strongest relationship you found?
+
+* pH and Fixed acidity was the strongest with 0.68.
+* **Compared to quality, Alcohol with 0.48 was the strongest. Followed by**
+**volatile acidity**
+
+# Multivariate Plots Section
+
+> **Quality levels grouping:** to simplify analysis I've collapsed quality
+levels from 6 to 4 levels. This will visualize more easily the patterns between
+variables that affect quality.
+
+```{r, echo=FALSE}
+corr_pf$Qual <- pf$quality_group
+ggpairs(corr_pf, bins = 30, columns = c("F.Acid","V.Acid", "C.Acid","Dens.","pH"),
+        mapping=ggplot2::aes(colour = Qual))
+```
+
+```{r, echo=FALSE}
+ggpairs(corr_pf, bins = 30, columns = c("RSugar","Dens.", "Chlor","Sulph","Alcoh"),
+        mapping=ggplot2::aes(colour = Qual))
+```
+
+**Other interesting variables that relates to quality**
+
+Fixed acidity and density show a positive correlation that translates also into
+quality.
+
+```{r, echo=FALSE}
+ggplot(aes(x = density, y=fixed.acidity, colour = quality_level), data = pf) +
+  geom_smooth(se = FALSE, method = "lm") +
+  geom_point(alpha = 1/3, size = 4) +
+  scale_color_brewer(type='seq')
+```
+
+Alcohol and density show also a correlation that translates into quality
+
+```{r, echo=FALSE}
+ggplot(aes(x =density, y=alcohol, colour = quality_level), data = pf) +
+  geom_smooth(se = FALSE, method = "lm") +
+  geom_point(alpha = 1/3, size = 4) +
+  scale_color_brewer(type='seq')
+```
+
+# Multivariate Analysis
+
+By selecting the variables that are more related to quality grouped by:
+1. Alcoholic (excluding density and suger residuals since are related to alcohol)
+2. Acidity (volatile, since others like pH, Citric and Fixed are related as well)
+3. Sulphates
+3. Chloridic
+4. SO2 (i included SO2 since it improved the model a little bit)
+
+This is the model:
+
+```{r}
+m1 <- lm(quality ~ alcohol, data = pf)
+m2 <- update(m1, ~ . + volatile.acidity)
+m3 <- update(m2, ~ . + I(log(sulphates)))
+m4 <- update(m3, ~ . + chlorides)
+m5 <- update(m4, ~ . + total.sulfur.dioxide)
+mtable(m1, m2, m2, m3, m4, m5)
+```
+
+### Talk about some of the relationships you observed in this part of the \
+investigation. Were there features that strengthened each other in terms of \
+looking at your feature(s) of interest?
+
+I focused on those variables with high correlation to quality and more 
+linear behaviour:
+
+* Alcohol
+* Volatile acidity
+* Sulphates (logistic)
+* Chlorides
+
+Other variables were not used to prevent redundancy, for example, citric acid, 
+fixed acidity, pH and density are related to Volatile Acidity anyway.
+
+Density is also related to alcohol. Sugar Residual and SO2 were not highly
+related to quality. I included Total SO2 to improve some more the model but it's
+marginal.
+
+Even with the model its quite difficult to get a model with a strongher Rsquared
+since for some quality levels there are not enough observations. That's why I
+opted to collapese and merge some levels.
+
+### Were there any interesting or surprising interactions between features?
+
+Yes, density requires more analysis and SO2 variables as well since they show
+complex relations to quality.
+
+------
+
+# Final Plots and Summary
+
+### Plot One
+                 3      4       5       6       7       8
+Alcohol Median   9.925  10.000  9.700   10.500  11.500  12.150
+
+```{r echo=FALSE, Plot_One}
+    ggplot(aes(x = alcohol), data = pf) +
+    scale_y_sqrt()+
+    geom_histogram(binwidth = 0.5, color = 'darkgrey', fill = 'grey') + 
+    theme(legend.position="bottom") + 
+    geom_freqpoly(binwidth = 0.5, aes(color = quality_level), size = 1) +  
+    scale_color_brewer(type='seq') +
+    xlab('% alcohol by volume') +
+    ylab('Number of observations') +
+    labs(title ='Alcohol distribution and relation to quality')
+```
+
+### Description One
+Starting at level 5, Alcohol follow a strong linear relation to quality. 
+Levels 3 and 4 are more volatile even level 4 is bimodal.
+
+
+### Plot Two
+```{r echo=FALSE, Plot_Two}
+  ggplot(aes(x = quality_group, y = volatile.acidity), data = pf) +
+  coord_cartesian(ylim = olimits(pf$volatile.acidity)) +
+  geom_boxplot(color = 'darkgrey') + 
+  theme(legend.position="none") +
+  labs(y='acetic acid - g/dm^3', x='quality',title='Linear relation between volatile acidity and Quality') + 
+  geom_smooth(method = "lm", se=TRUE, formula = y ~x, aes(group=1))
+```
+
+### Description Two
+Volatile acidity follow a linear patterns agains quality. Sadly, quality levels
+3 and 8 don't have enough observations to show a better linear model. If we
+collapse to 4 quality levels you can show a better behaviour.
+
+### Plot Three
+```{r echo=FALSE, Plot_Three}
+  ggplot(pf, aes(x=quality_level, y=sulphates)) + 
+  geom_violin(trim=FALSE)+
+  scale_y_log10()+
+  geom_boxplot(width=0.1, fill="white")+
+  labs(x="quality", y = 'potassium sulphate - g/dm^3', title='Logistic relation between sulphates and quality')
+```
+
+### Description Three
+By using conditional summaries we can see there is a logistic line to describe
+quality based on sulphates with a upper limit at 0.740 g/dm3.
+
+------
+
+# Reflection
+The model was simple in the sense that all variables were continuos. Plotting
+distributions and relationships was easy with ggplot and specially ggpairs to
+see multiple plots at once is just great. Using violin-plots to identify the 
+impact of outlier and strange distributions is great too. But at the end one of
+the main tools I used to double check my finding was the conditional summaries
+table.
+
+Once I analyzed relationship between input variables I decided to go for 4 
+variables since they were related to quality and they also had strong relations
+to other "secondary" variables like citric acid, pH, density, sugar residual
+and fixed acidity. 
+
+* Alcohol
+* Volatile acidity
+* Sulphate
+* Chloride
+
+I thouht Citric Acid would play a mayor role in my model but
+at the end it didn't help that much.
+
+Challenges:
+
+Quality levels with just a few observations. I spent the last weeks trying to
+figure it out how to deal with just a few observations at quality level 3 and 8.
+Without using inference statistics I opted to grouped those categories to see
+more patterns and then decide an approach.
+
+Most variables don't have a well defined linear relationship with quality
+variable so more complex analysis need to be applied to improve the model.
+For example SO2 variables have concave shapes.
+
+Removing or hidding outliers. In most cases I just used coord_cartesian to 
+visually exlude them without affecting the results since I didn't had much more
+information to decide it they were contamination or valid data.
+
+Future analysis:
+
+Quality **level 5** for chlorides, sugar residuals, sulphates
+and alcohol clearly shows in violin plots the effect of outliers in that
+particular group. I opted to leave the outliers but it would be interesting
+to see that particular quality level in detail and fine tune some more the model.
+
+Density is an interesting variable. It links acidity variables and alcohol/sulfur 
+variables and has a great pattern to model classification since quality levels
+seems to follow linear models as well. 
+
+

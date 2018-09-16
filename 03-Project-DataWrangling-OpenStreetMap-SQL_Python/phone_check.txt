@@ -1,0 +1,1 @@
+select value as population from nodes_tags where key='population' order by  CAST(value as INTEGER) desc;

@@ -1,0 +1,13 @@
+Code and guides used
+
+http://scikit-learn.org/stable/auto_examples/applications/plot_face_recognition.html
+http://pythoncentral.io/measure-time-in-python-time-time-vs-time-clock/
+http://scikit-learn.org/stable/auto_examples/plot_compare_reduction.html#sphx-glr-auto-examples-plot-compare-reduction-py
+https://medium.com/machine-learning-101/chapter-3-decision-tree-classifier-coding-ae7df4284e99
+http://scikit-learn.org/stable/auto_examples/svm/plot_iris.html#sphx-glr-auto-examples-svm-plot-iris-py
+https://stackoverflow.com/questions/39409866/correlation-heatmap
+http://scikit-learn.org/stable/auto_examples/preprocessing/plot_scaling_importance.html
+https://classroom.udacity.com/nanodegrees/nd002/parts/0021345409/modules/317428862475460/lessons/2948958577/concepts/30915885580923
+http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.StratifiedShuffleSplit.html
+http://nullege.com/codes/show/src@s@c@scikit-learn-0.14.1@examples@plot_feature_selection.py/52/sklearn.feature_selection.SelectPercentile
+http://rushdishams.blogspot.co.id/2011/03/precision-and-recall.html

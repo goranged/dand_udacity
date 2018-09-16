@@ -1,0 +1,6 @@
+<tag k="exit_to" v="111, Plaza Real Cariari"/>
+<tag k="postal_code" v="40901"/>
+<tag k="addr:postcode" v="40501"/>
+<tag k="name" v="Hotel Sura B&amp;B"/>
+<tag k="phone" v="+50625111334"/>
+<tag k="phone" v="40306951"/>
